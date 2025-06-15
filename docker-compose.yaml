@@ -1,0 +1,119 @@
+services:
+  authentication.api:
+    image: anuvindm2002/authentication-server:1.0
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - SQL_HOST=auth-postgres
+      - SQL_PORT=5432
+      - SQL_DB=JwtAuthDB
+      - SQL_USER=postgres
+      - SQL_PASSWORD=admin
+      - Jwt__Issuer=http://host.docker.internal:7001
+      - RUN_MIGRATIONS=true
+      - ChatClientIP=http://localhost:4200
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=user
+      - RabbitMQ__Password=password
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Auth_Exchange=auth.exchange
+    ports:
+      - "7001:8080"
+    depends_on:
+      - auth-postgres
+      - rabbitmq
+    networks:
+      - auth-network
+      - application-network
+
+  auth-postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_DB=JwtAuthDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - "6543:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - auth-network
+
+  chatserver.api:
+    image: anuvindm2002/chat-server:1.0
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - SQL_HOST=chat-postgres
+      - SQL_PORT=5432
+      - SQL_DB=ChatDB
+      - SQL_USER=postgres
+      - SQL_PASSWORD=admin
+      - ChatClientIP=http://localhost:4200
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=user
+      - RabbitMQ__Password=password
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Auth_Exchange=auth.exchange
+      - Jwt__Issuer=http://host.docker.internal:7001
+    ports:
+      - "7002:8080"
+    depends_on:
+      - chat-postgres
+      - rabbitmq
+    networks:
+      - chat-network
+      - application-network
+
+
+  chat-postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_DB=ChatDB
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - "6544:5432"
+    volumes:
+      - chatdata:/var/lib/postgresql/data
+    networks:
+      - chat-network
+
+  rabbitmq:
+    image: rabbitmq:4.1-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - application-network
+  
+  apigateway:
+    image: anuvindm2002/apigateway:1.0
+    ports:
+      - "7000:8080"
+    networks:
+      - application-network
+  
+  chat-client:
+    image: anuvindm2002/chat-client:1.0
+    ports:
+      - "4200:80"
+    networks:
+      - application-network
+
+volumes:
+  pgdata:
+  chatdata:
+
+networks:
+  auth-network:
+    driver: bridge
+  chat-network:
+    driver: bridge
+  application-network:
+    driver: bridge
