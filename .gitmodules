@@ -1,0 +1,12 @@
+[submodule "chat-app"]
+	path = chat-app
+	url = https://github.com/AnuvindM02/chat-app.git
+[submodule "ChatServer"]
+	path = ChatServer
+	url = https://github.com/AnuvindM02/ChatServer.git
+[submodule "Authentication"]
+	path = Authentication
+	url = https://github.com/AnuvindM02/Authentication.git
+[submodule "ChatServer-ApiGateway"]
+	path = ChatServer-ApiGateway
+	url = https://github.com/AnuvindM02/ChatServer-ApiGateway.git
